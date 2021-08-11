@@ -1,6 +1,8 @@
 package rest_errors
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -13,10 +15,10 @@ type RestErr interface {
 }
 
 type restErr struct {
-	message string        //`json:"message"`
-	status  int           //`json:"status"`
-	error   string        //`json:"error"`
-	causes  []interface{} //`json:"causes"`
+	message string        `json:"message"`
+	status  int           `json:"status"`
+	error   string        `json:"error"`
+	causes  []interface{} `json:"causes"`
 }
 
 func (e restErr) Error() string {
@@ -43,6 +45,15 @@ func NewRestError(message string, status int, err string, causes []interface{}) 
 		causes: causes,
 	}
 }
+
+func NewRestErrorFromBytes(bytes []byte)(RestErr, error){
+	var apiErr restErr
+	if err := json.Unmarshal(bytes, &apiErr); err != nil{
+		return nil, errors.New("invalid json")
+	}
+	return apiErr, nil
+}
+
 func NewBadRequestError(message string) RestErr {
 	return &restErr{
 		message: message,
